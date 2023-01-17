@@ -86,8 +86,8 @@ M.setup = function(opts)
     else
         Root = Path:new(vim.fn.expand(options.notes_dir) or vim.fn.expand("~/Notes"))
         Inbox = Root:joinpath("Inbox")
-        vim.fn.writefile({Root, Inbox}, config.filename)
-        vim.fn.mkdir(Inbox, "p")
+        vim.fn.writefile({Root.filename, Inbox.filename}, config.filename)
+        vim.fn.mkdir(Inbox.filename, "p")
     end
 
     brain = require("notation.actions")
