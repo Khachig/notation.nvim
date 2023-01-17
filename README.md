@@ -1,6 +1,6 @@
 # notation.nvim
 
-Tap into your second brain form the comfort of your text editor.
+Tap into your second brain from the comfort of your text editor.
 
 ## What is Notation?
 
@@ -47,13 +47,13 @@ You can use the plugin with the commands:
 ### Default mappings
 
 ```
-| Mapping      | Action                   |
-|--------------|--------------------------|
-| `<leader>nl` | List all notes           |
-| `<leader>nc` | Create new note          |
-| `<leader>nj` | Create new journal entry |
-| `<leader>nt` | Tag note                 |
-| `<leader>ns` | Search all tags          |
+| Mapping    | Action                   |
+|------------|--------------------------|
+| <leader>nl | List all notes           |
+| <leader>nc | Create new note          |
+| <leader>nj | Create new journal entry |
+| <leader>nt | Tag note                 |
+| <leader>ns | Search all tags          |
 ```
 
 ## Notation setup options
