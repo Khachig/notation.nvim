@@ -10,7 +10,6 @@ local M = {}
 
 function M.add_tag(new_tag)
     local frontmatter = fm.get_frontmatter()
-    print("Got frontmatter: " .. vim.inspect(frontmatter))
     table.insert(frontmatter.data.tags, new_tag)
     fm.write_frontmatter(frontmatter)
 end
