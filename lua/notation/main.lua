@@ -105,11 +105,11 @@ M.setup = function(opts)
     end
 
     if options.default_keymaps ~= false then
-        vim.api.nvim_set_keymap("n", "<leader>nl", M.list_notes, {})
-        vim.api.nvim_set_keymap("n", "<leader>nc", M.create_note, {})
-        vim.api.nvim_set_keymap("n", "<leader>nj", M.create_journal_entry, {})
-        vim.api.nvim_set_keymap("n", "<leader>nt", M.tag_note, {})
-        vim.api.nvim_set_keymap("n", "<leader>ns", M.search_tags, {})
+        vim.keymap.set("n", "<leader>nl", M.list_notes, {})
+        vim.keymap.set("n", "<leader>nc", M.create_note, {})
+        vim.keymap.set("n", "<leader>nj", M.create_journal_entry, {})
+        vim.keymap.set("n", "<leader>nt", M.tag_note, {})
+        vim.keymap.set("n", "<leader>ns", M.search_tags, {})
     end
 end
 
