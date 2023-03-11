@@ -1,7 +1,7 @@
 local fm = require("notation.frontmatter")
 local utils = require("notation.utils")
 
-Root, Inbox = utils.get_notes_dirs()
+local Root, Inbox
 
 local function open_note(filename, opts)
     if filename:match("%.md$") == nil then
@@ -30,6 +30,18 @@ end
 
 local M = {}
 
+function M.setup(opts)
+    Root, Inbox = require("notation.utils").get_notes_dirs(opts.notes_dir)
+
+    if opts.default_keymaps ~= false then
+        vim.keymap.set("n", "<leader>nl", M.list_notes, {})
+        vim.keymap.set("n", "<leader>nc", M.create_note, {})
+        vim.keymap.set("n", "<leader>nj", M.create_journal_entry, {})
+        vim.keymap.set("n", "<leader>nt", M.tag_note, {})
+        vim.keymap.set("n", "<leader>ns", M.search_tags, {})
+    end
+end
+
 function M.create_note(opts)
     local filename = vim.fn.input("Note name: ")
     if filename ~= "" then
@@ -43,7 +55,7 @@ end
 
 function M.list_notes()
     local notes = get_all_notes()
-    local opts = utils.get_telescope_opts({
+    utils.show_telescope_picker(notes, {
         preview=true,
         preview_root_path=Inbox,
         results_title="My Notes",
@@ -54,7 +66,6 @@ function M.list_notes()
             end
         end
     })
-    utils.show_telescope_picker(notes, opts)
 end
 
 function M.tag_note()
@@ -62,9 +73,9 @@ function M.tag_note()
         vim.notify("Can't tag non-markdown files.", "error")
         return
     end
-    local tags = fm.get_all_tags()
+    local tags = fm.get_all_tags(Inbox)
     table.insert(tags, "New Tag")
-    local opts = utils.get_telescope_opts({
+    utils.show_telescope_picker(tags, {
         results_title="Tags",
         callback=function(selection)
             if selection ~= nil then
@@ -76,12 +87,11 @@ function M.tag_note()
             end
         end
     })
-    utils.show_telescope_picker(tags, opts)
 end
 
 function M.search_tags()
-    local tags = fm.get_all_tags()
-    local tag_opts = utils.get_telescope_opts({
+    local tags = fm.get_all_tags(Inbox)
+    utils.show_telescope_picker(tags, {
         results_title="Tags",
         callback=function(selection)
             if selection ~= nil then
@@ -91,13 +101,13 @@ function M.search_tags()
                     preview=true,
                     preview_root_path=Inbox,
                     search_dirs={Inbox.filename},
+                    cwd=Inbox.filename,
                     default_text="#" .. tag
                 })
                 require("telescope.builtin").live_grep(opts)
             end
         end
     })
-    utils.show_telescope_picker(tags, tag_opts)
 end
 
 return M
