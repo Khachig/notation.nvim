@@ -24,6 +24,7 @@ It is very easy to setup `notation.nvim`.
 - [Neovim (v0.7.0)](https://github.com/neovim/neovim/releases/tag/v0.7.0) or higher is required for `notation.nvim` to work.
 - [plenary.nvim](https://github.com/nvim-lua/plenary.nvim)
 - [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim)
+- [ripgrep](https://github.com/BurntSushi/ripgrep)
 
 ### Installation
 
