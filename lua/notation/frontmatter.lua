@@ -32,8 +32,8 @@ local function stringify_tags(taglist)
     return tagstring
 end
 
-function M.get_all_tags()
-    local tagstrings = vim.fn.system("head -5 " .. Inbox:joinpath("*").filename .. " | sed -n '/^tags/p' | sed 's/^tags: \\+//' | sed 's/, /\\n/g' | tr -d '#' | sort | uniq")
+function M.get_all_tags(inbox)
+    local tagstrings = vim.fn.system("cat " .. inbox:joinpath("*").filename .. " | sed -n '/^tags/p' | sed -E 's/^tags: +(.+)/\\1/;s/, /\\n/g;s/#//g' | sort | uniq")
     local tags = {}
     for i in string.gmatch(tagstrings, "([^\n]+)") do
         table.insert(tags, i)
