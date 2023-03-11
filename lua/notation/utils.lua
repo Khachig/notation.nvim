@@ -1,4 +1,24 @@
+local Path = require("plenary.path")
+
 local M = {}
+
+function M.get_notes_dirs(notes_dir)
+    local config = Path:new(vim.fn.stdpath("data")):joinpath("notation-data")
+    local root, inbox
+    if config:exists() then
+        local lines = vim.fn.readfile(config.filename)
+        root = Path:new(lines[1])
+        inbox = Path:new(lines[2])
+    else
+        root = Path:new(vim.fn.expand(notes_dir or "~/Notes"))
+        inbox = root:joinpath("Inbox")
+        vim.fn.writefile({root.filename, inbox.filename}, config.filename)
+    end
+    if root:exists() == false or inbox:exists() == false then
+        vim.fn.mkdir(inbox.filename, "p")
+    end
+    return root, inbox
+end
 
 function M.show_telescope_picker (picker_list, opts)
     local pickers = require("telescope.pickers")

@@ -1,37 +1,25 @@
-local Path = require("plenary.path")
-local data_path = Path:new(vim.fn.stdpath("data")):joinpath("notation-data")
-local notes_paths = vim.fn.readfile(data_path.filename)
 local fm = require("notation.frontmatter")
+local utils = require("notation.utils")
 
-Root = Path:new(notes_paths[1])
-Inbox = Path:new(notes_paths[2])
+Root, Inbox = utils.get_notes_dirs()
 
-local M = {}
-
-function M.add_tag(new_tag)
-    local frontmatter = fm.get_frontmatter()
-    table.insert(frontmatter.data.tags, new_tag)
-    fm.write_frontmatter(frontmatter)
-end
-
-function M.open_note(filename, opts)
+local function open_note(filename, opts)
     if filename:match("%.md$") == nil then
         filename = filename .. ".md"
     end
-    local options = opts or {}
     local frontmatter = {
         fm_start = 1,
         fm_end = 1,
         data = {
             date= os.date("%A, %B %d, %Y. %H:%M."),
-            tags= options.tags or {}
+            tags= opts.tags or {}
         }
     }
     vim.api.nvim_command("e " .. Inbox:joinpath(filename).filename)
     fm.write_frontmatter(frontmatter)
 end
 
-function M.get_all_notes()
+local function get_all_notes()
     local inbox_notes = vim.fn.system("ls -l " .. Inbox.filename .. " | sed '/^[^\\-]/d' | rev | cut -d' ' -f1 | rev")
     local notes = {}
     for i in string.gmatch(inbox_notes, "([^\n]+)") do
@@ -40,13 +28,76 @@ function M.get_all_notes()
     return notes
 end
 
-function M.get_all_tags()
-    local tagstrings = vim.fn.system("head -5 " .. Inbox:joinpath("*").filename .. " | sed -n '/^tags/p' | sed 's/^tags: \\+//' | sed 's/, /\\n/g' | tr -d '#' | sort | uniq")
-    local tags = {}
-    for i in string.gmatch(tagstrings, "([^\n]+)") do
-        table.insert(tags, i)
+local M = {}
+
+function M.create_note(opts)
+    local filename = vim.fn.input("Note name: ")
+    if filename ~= "" then
+        open_note(filename, opts or {})
     end
-    return tags
+end
+
+function M.create_journal_entry()
+    M.create_note({tags={"journal"}})
+end
+
+function M.list_notes()
+    local notes = get_all_notes()
+    local opts = utils.get_telescope_opts({
+        preview=true,
+        preview_root_path=Inbox,
+        results_title="My Notes",
+        prompt_title="Search Notes",
+        callback=function(selection)
+            if selection ~= nil then
+                vim.api.nvim_command("e " .. Inbox:joinpath(selection[1]).filename)
+            end
+        end
+    })
+    utils.show_telescope_picker(notes, opts)
+end
+
+function M.tag_note()
+    if vim.o.filetype ~= "markdown" then
+        vim.notify("Can't tag non-markdown files.", "error")
+        return
+    end
+    local tags = fm.get_all_tags()
+    table.insert(tags, "New Tag")
+    local opts = utils.get_telescope_opts({
+        results_title="Tags",
+        callback=function(selection)
+            if selection ~= nil then
+                local tag = selection[1]
+                if tag == "New Tag" then
+                    tag = vim.fn.input("New Tag: ")
+                end
+                fm.add_tag(tag)
+            end
+        end
+    })
+    utils.show_telescope_picker(tags, opts)
+end
+
+function M.search_tags()
+    local tags = fm.get_all_tags()
+    local tag_opts = utils.get_telescope_opts({
+        results_title="Tags",
+        callback=function(selection)
+            if selection ~= nil then
+                local tag = selection[1]
+                local opts = utils.get_telescope_opts({
+                    results_title="Notes tagged #" .. tag,
+                    preview=true,
+                    preview_root_path=Inbox,
+                    search_dirs={Inbox.filename},
+                    default_text="#" .. tag
+                })
+                require("telescope.builtin").live_grep(opts)
+            end
+        end
+    })
+    utils.show_telescope_picker(tags, tag_opts)
 end
 
 return M

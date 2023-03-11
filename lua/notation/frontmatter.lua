@@ -1,6 +1,6 @@
 local M = {}
 
-function M.parse_tags(tagstring)
+local function parse_tags(tagstring)
     local tags = {}
     -- There is no alternation mechanism in lua pattern matching
     -- so we have to check alternatives separately.
@@ -14,7 +14,7 @@ function M.parse_tags(tagstring)
     return tags
 end
 
-function M.stringify_tags(taglist)
+local function stringify_tags(taglist)
     local tagstring = ""
     local sep
     for i, tag in ipairs(taglist) do
@@ -26,10 +26,25 @@ function M.stringify_tags(taglist)
         if type(tag) == "string" then
             tagstring = tagstring .. sep .. tag
         elseif type(tag) == "table" then
-            tagstring = tagstring .. ", " .. M.stringify_tags(tag)
+            tagstring = tagstring .. ", " .. stringify_tags(tag)
         end
     end
     return tagstring
+end
+
+function M.get_all_tags()
+    local tagstrings = vim.fn.system("head -5 " .. Inbox:joinpath("*").filename .. " | sed -n '/^tags/p' | sed 's/^tags: \\+//' | sed 's/, /\\n/g' | tr -d '#' | sort | uniq")
+    local tags = {}
+    for i in string.gmatch(tagstrings, "([^\n]+)") do
+        table.insert(tags, i)
+    end
+    return tags
+end
+
+function M.add_tag(new_tag)
+    local frontmatter = M.get_frontmatter()
+    table.insert(frontmatter.data.tags, new_tag)
+    M.write_frontmatter(frontmatter)
 end
 
 function M.get_frontmatter()
@@ -47,7 +62,7 @@ function M.get_frontmatter()
         local value = string.match(line, "^[%w%p]+: (.+)$")
         if key == "tags" then
             if value ~= nil then
-                value = M.parse_tags(value)
+                value = parse_tags(value)
             else
                 value = {}
             end
@@ -63,7 +78,7 @@ function M.write_frontmatter(frontmatter)
     for key, val in pairs(frontmatter.data) do
         local value = val
         if key == "tags" then
-            value = M.stringify_tags(value)
+            value = stringify_tags(value)
         end
         table.insert(lines, key .. ": " .. value)
     end
